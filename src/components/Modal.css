@@ -1,0 +1,14 @@
+.modal-backdrop{position:fixed;inset:0;background:linear-gradient(rgba(10,20,30,0.55),rgba(10,20,30,0.55));display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#ffffff;padding:20px;border-radius:12px;width:760px;max-width:98%;box-shadow:0 12px 40px rgba(31,45,61,0.2)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed #e6eef6;padding-bottom:12px;margin-bottom:14px}
+.modal-header h3{margin:0;color:#1f2d3d}
+.modal-body{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.modal-body .field{display:flex;flex-direction:column}
+.modal-body label{font-size:13px;margin-bottom:6px;color:#51626f}
+.modal-body input,.modal-body select{padding:12px;border-radius:20px;border:1px solid #e6eef6;background:#fbfdff}
+.modal-body input[type=file]{padding:8px;border-radius:10px;background:#fff}
+.modal-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:12px;margin-top:8px}
+.modal-actions button{padding:10px 18px;border-radius:18px;border:none;background:linear-gradient(180deg,#9fc0e0,#7cb0d8);color:#0f2340;font-weight:600}
+.modal-actions button[aria-disabled="true"], .modal-actions button:disabled{opacity:0.5;cursor:not-allowed}
+.modal-actions button[type="button"]{background:#f3f4f6;color:#55606b}
+.error{color:#d23f3f;font-size:12px;margin-top:6px;display:block}

@@ -1,0 +1,35 @@
+{
+  "name": "school-m-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon --watch src --exec \"node src/index.js\"",
+    "start": "node src/index.js",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:generate": "prisma generate",
+    "prisma:generate:sqlite": "prisma generate --schema=prisma/schema.sqlite.prisma",
+    "prisma:migrate:sqlite": "cross-env DATABASE_URL=file:./dev.db prisma migrate dev --schema=prisma/schema.sqlite.prisma --name init",
+    "prisma:seed:sqlite": "cross-env DATABASE_URL=file:./dev.db node prisma/seed_sqlite.js",
+    "seed": "node prisma/seed.js"
+  },
+
+  "dependencies": {
+    "@prisma/client": "^5.12.0",
+    "aws-sdk": "^2.1360.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "multer": "^1.4.5-lts.1",
+    "multer-s3": "^2.10.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.12.0",
+    "nodemon": "^2.0.22",
+    "cross-env": "^7.0.3"
+  }
+}

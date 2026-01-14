@@ -1,0 +1,37 @@
+h2{margin-top:0;font-size:26px;color:#1f2d3d}
+.page-container{width:100%;padding:50px 26px; display:flex;flex-wrap: wrap;}
+.dashboard-actions{display:flex;gap:12px;margin-bottom:18px}
+.primary{background:linear-gradient(180deg,#a6c8e8,#7caad6);border:none;padding:12px 20px;border-radius:28px;color:#0f2340;font-weight:600;box-shadow:0 6px 14px rgba(90,136,196,0.12)}
+.secondary{background:linear-gradient(180deg,#cbdff2,#b3d1ee);border:none;padding:12px 20px;border-radius:28px;color:#0f2340}
+.dashboard-widgets{display:flex;gap:18px;margin-top:22px}
+.widget{background:linear-gradient(180deg,#ffffff,#f7fbff);padding:20px;border-radius:12px;box-shadow:0 8px 24px rgba(31,45,61,0.05);min-width:140px;text-align:center}
+.widget small{display:block;color:#6b7b88;margin-top:6px}
+
+.datetime-card{min-width:220px;text-align:right;color:#51626f;background:linear-gradient(180deg,#fbfdff,#f5f8fb);padding:30px;border-radius:8px;border:1px solid #eaf2f8}
+.datetime-week{font-weight:1000}
+.datetime-date{font-size:14px;margin-top:2px}
+.datetime-time{font-weight:700;font-size:18px;margin-top:6px;color:#203345}
+
+.class-box{display:inline-block;padding:6px 10px;border-radius:8px;background:#f5f9fb;border:1px solid #e6eef6;color:#203345;text-align:center;min-width:72px}
+.classes-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.classes-row button{padding:12px 20px;border-radius:32px;background:#e8f2fb;border:none;color:#172837;box-shadow:0 4px 10px rgba(30, 60, 100, 0.06)}
+.classes-row button.active{background:linear-gradient(180deg,#cfe7fb,#9fc0e0);box-shadow:0 6px 14px rgba(80,130,180,0.08)}
+.table{width:100%;border-collapse:collapse;margin-top:14px;background:#fff;border-radius:8px;overflow:hidden}
+.table th,.table td{border-bottom:1px solid #eef2f6;padding:12px;text-align:left}
+.table thead th{background:#fafcff;color:#233044;font-weight:700}
+.table tbody tr:hover{background:#fbfdff}
+.table .month-input{width:48px;padding:6px;border-radius:6px;text-align:center;border:1px solid #e6eef6}
+.finance-actions{margin-bottom:12px}
+.finance-note{margin:8px 0 12px;color:#51626f;font-size:13px}
+.finance-note .info{margin-left:6px;cursor:help}
+.info{margin-left:6px;cursor:help;font-size:14px}
+.danger{background:linear-gradient(180deg,#ef7b7b,#db5b5b);color:#fff;border:none;padding:10px 16px;border-radius:8px}
+
+.search-row{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.search-row.center{justify-content:center;margin-bottom:12px}
+.search-box{position:relative;min-width:320px;max-width:620px;width:50%}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;color:#7a8996}
+.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#7a8996;font-size:14px;cursor:pointer;padding:6px;border-radius:6px}
+.search-input{width:100%;padding:10px 36px 10px 40px;border-radius:12px;border:1px solid #e6eef6;background:#fff;box-shadow:0 2px 6px rgba(31,45,61,0.03);transition:box-shadow .18s ease,border-color .18s ease}
+.search-input:focus{outline:none;border-color:#bcdff3;box-shadow:0 6px 18px rgba(32,66,100,0.08)}
+

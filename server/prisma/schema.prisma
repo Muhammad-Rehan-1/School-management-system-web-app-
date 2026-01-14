@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id            String    @id @default(uuid())
+  roll          String?   @unique
+  name          String
+  father        String?
+  contact       String?
+  email         String?
+  address       String?
+  classGrade    String?
+  gender        String?
+  dob           DateTime?
+  enrollmentDate DateTime?
+  admissionFees Float     @default(0)
+  monthlyFees   Float     @default(0)
+  bformUrl      String?
+  payments      Payment[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Staff {
+  id        String   @id @default(uuid())
+  name      String
+  role      String?
+  cnicUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId String
+  amount    Float
+  method    String?
+  paidAt    DateTime @default(now())
+  note      String?
+
+  @@index([studentId])
+}
+
+model Upload {
+  id         String   @id @default(uuid())
+  ownerType  String
+  ownerId    String
+  url        String
+  filename   String?
+  mime       String?
+  size       Int?
+  createdAt  DateTime @default(now())
+}

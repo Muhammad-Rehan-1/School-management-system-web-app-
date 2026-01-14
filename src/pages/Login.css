@@ -1,0 +1,101 @@
+.login-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+  padding: 20px;
+}
+
+.login-card h1 {
+  font-size: 48px;
+  font-weight: 500;
+  margin-bottom: 40px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1.5px solid #a3b1ff;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.forgot-password {
+  text-align: right;
+  margin-top: 5px;
+}
+
+.forgot-password a {
+  font-size: 12px;
+  color: #333;
+  text-decoration: none;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 15px;
+  background-color: #5d78ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(93, 120, 255, 0.3);
+  margin-top: 20px;
+}
+
+.login-btn:disabled {
+  background-color: #a3b1ff;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.contact-link {
+  margin-top: 25px;
+  font-size: 13px;
+}
+
+.contact-link a {
+  color: #333;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #5d78ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  cursor: pointer;
+}

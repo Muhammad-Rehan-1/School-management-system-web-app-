@@ -1,0 +1,6 @@
+/* Global app styles */
+html,body,#root{height:100%}
+body{margin:0;background:linear-gradient(180deg,#f3f6f9,#eef3f8);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:inherit}
+button{cursor:pointer;font-family:inherit}
