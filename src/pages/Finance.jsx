@@ -9,6 +9,8 @@ export default function Finance(){
   const [selectedIds, setSelectedIds] = React.useState(new Set())
   const [moveTo, setMoveTo] = React.useState('')
   const [query, setQuery] = React.useState('')
+  const [defaultersList, setDefaultersList] = React.useState([])
+  const [showDefaultersModal, setShowDefaultersModal] = React.useState(false)
 
 
 
@@ -49,28 +51,49 @@ export default function Finance(){
   }
 
   function showDefaulters(){
-    const defaulters = students.filter(s => {
-      const monthsUpTo = MONTH_KEYS.slice(0, asOfMonth + 1)
-      const numPaidMonths = monthsUpTo.filter(m => (s.payments?.[m] || '').toString().toLowerCase() === 'p').length
-      const paidFromMonths = (s.monthlyFees || 0) * numPaidMonths
-      const totalPaid = paidFromMonths + Number(s.paid || 0)
-      const totalDueAsOf = (s.admissionFees || 0) + (s.monthlyFees || 0) * (asOfMonth + 1)
-      const unpaidAsOf = Math.max(0, totalDueAsOf - totalPaid)
-      return unpaidAsOf > 0
-    })
-    const doc = new jsPDF()
-    doc.setFontSize(14)
-    doc.text('Defaulters List', 14, 20)
-    let y = 30
-    defaulters.forEach(d => {
+    const defaulters = students.map(d => {
       const monthsUpTo = MONTH_KEYS.slice(0, asOfMonth + 1)
       const numPaidMonths = monthsUpTo.filter(m => (d.payments?.[m] || '').toString().toLowerCase() === 'p').length
       const paidFromMonths = (d.monthlyFees || 0) * numPaidMonths
       const totalPaid = paidFromMonths + Number(d.paid || 0)
       const totalDueAsOf = (d.admissionFees || 0) + (d.monthlyFees || 0) * (asOfMonth + 1)
       const unpaidAsOf = Math.max(0, totalDueAsOf - totalPaid)
-      doc.text(`${d.name} | ${d.roll} | Unpaid (as of ${MONTH_LABELS[asOfMonth]}): ${unpaidAsOf}`, 14, y)
+      return ({
+        id: d.id,
+        name: d.name,
+        roll: d.roll,
+        classGrade: d.classGrade,
+        monthlyFees: d.monthlyFees,
+        unpaidAsOf
+      })
+    }).filter(x => x.unpaidAsOf > 0)
+    setDefaultersList(defaulters)
+    setShowDefaultersModal(true)
+  }
+
+  function exportDefaultersPDF(){
+    if(!defaultersList || defaultersList.length === 0) return
+    const doc = new jsPDF()
+    doc.setFontSize(14)
+    doc.text('Defaulters List', 14, 18)
+    doc.setFontSize(11)
+    const startY = 28
+    let y = startY
+    // header
+    doc.text('Name', 14, y)
+    doc.text('Roll', 80, y)
+    doc.text('Class', 110, y)
+    doc.text('Monthly', 150, y)
+    doc.text(`Unpaid (as of ${MONTH_LABELS[asOfMonth]})`, 176, y)
+    y += 8
+    defaultersList.forEach(d => {
+      doc.text(String(d.name || '-'), 14, y)
+      doc.text(String(d.roll || '-'), 80, y)
+      doc.text(String(d.classGrade || '-'), 110, y)
+      doc.text(String(d.monthlyFees || '0'), 150, y)
+      doc.text(String(d.unpaidAsOf || '0'), 176, y)
       y += 8
+      if (y > 270){ doc.addPage(); y = 20 }
     })
     doc.save('defaulters.pdf')
   }
@@ -110,7 +133,8 @@ export default function Finance(){
 
       <div className="finance-note">Note: <strong>Total Paid (as of {MONTH_LABELS[asOfMonth]})</strong> = <em>monthly fee × number of months marked "p" up to {MONTH_LABELS[asOfMonth]}</em> + any manual paid amount. <span className="info" title={`Total Paid (as of ${MONTH_LABELS[asOfMonth]}) = monthly fee × number of months marked 'p' up to ${MONTH_LABELS[asOfMonth]} + manual paid amount`}>ℹ️</span></div>
 
-      <table className="table">
+      <div className="table-wrapper">
+        <table className="table">
         <thead>
           <tr>
             <th></th>
@@ -163,6 +187,41 @@ export default function Finance(){
           )})}
         </tbody>
       </table>
+      </div>
+
+      {showDefaultersModal && (
+        <div className="overlay" onClick={() => setShowDefaultersModal(false)}>
+          <div className="defaulters-modal" onClick={(e)=>e.stopPropagation()}>
+            <h3>Defaulters List (as of {MONTH_LABELS[asOfMonth]})</h3>
+            <table className="defaulters-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Roll</th>
+                  <th>Class</th>
+                  <th>Monthly Fee</th>
+                  <th>Unpaid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {defaultersList.map(d => (
+                  <tr key={d.id}>
+                    <td>{d.name}</td>
+                    <td>{d.roll}</td>
+                    <td>{d.classGrade}</td>
+                    <td>{d.monthlyFees}</td>
+                    <td>{d.unpaidAsOf}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="modal-actions">
+              <button onClick={exportDefaultersPDF}>Export PDF</button>
+              <button onClick={()=>setShowDefaultersModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

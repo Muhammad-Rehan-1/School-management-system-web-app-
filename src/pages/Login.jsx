@@ -110,8 +110,8 @@ export default function Login() {
         </form>
 
         <div className="contact-link">
-          <span>Can't find your School ID? </span>
-          <a href="#contact">Contact US</a>
+          <span>Demo Credentials:</span><br/>
+          <strong>Username: rehan</strong> | <strong>Password: 123</strong>
         </div>
 
         <div className="social-icons">

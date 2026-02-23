@@ -26,38 +26,41 @@ export default function Staff(){
         </div>
       </div>
 
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Father</th>
-            <th>Role</th>
-            <th>Contact</th>
-            <th>Email</th>
-            <th>Address</th>
-            <th>DOB</th>
-            <th>Enrollment</th>
-            <th>CNIC</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {displayed.map(s => (
-            <tr key={s.id}>
-              <td>{s.name}</td>
-              <td>{s.father || '-'}</td>
-              <td>{s.role || '-'}</td>
-              <td>{s.contact || '-'}</td>
-              <td>{s.email || '-'}</td>
-              <td>{s.address || '-'}</td>
-              <td>{s.dob ? new Date(s.dob).toLocaleDateString() : '-'}</td>
-              <td>{s.enrollmentDate ? new Date(s.enrollmentDate).toLocaleDateString() : '-'}</td>
-              <td>{s.cnicUrl ? <a href={s.cnicUrl} target="_blank" rel="noreferrer">View</a> : '-'}</td>
-              <td><button onClick={() => { if(window.confirm('Delete this staff member?')) deleteStaff(s.id) }}>Delete</button></td>
+      <h3>Staff List</h3>
+      <div className="table-wrapper">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Father</th>
+              <th>Role</th>
+              <th>Contact</th>
+              <th>Email</th>
+              <th>Address</th>
+              <th>DOB</th>
+              <th>Enrollment</th>
+              <th>CNIC</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {displayed.map(s => (
+              <tr key={s.id}>
+                <td>{s.name}</td>
+                <td>{s.father || '-'}</td>
+                <td>{s.role || '-'}</td>
+                <td>{s.contact || '-'}</td>
+                <td>{s.email || '-'}</td>
+                <td>{s.address || '-'}</td>
+                <td>{s.dob ? new Date(s.dob).toLocaleDateString() : '-'}</td>
+                <td>{s.enrollmentDate ? new Date(s.enrollmentDate).toLocaleDateString() : '-'}</td>
+                <td>{s.cnicUrl ? <a href={s.cnicUrl} target="_blank" rel="noreferrer">View</a> : '-'}</td>
+                <td><button onClick={() => { if(window.confirm('Delete this staff member?')) deleteStaff(s.id) }}>Delete</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 } 

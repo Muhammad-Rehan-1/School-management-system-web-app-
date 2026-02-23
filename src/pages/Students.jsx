@@ -41,49 +41,51 @@ export default function Students(){
       </div>
 
       <h3>Students List</h3>
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Roll</th>
-            <th>Name</th>
-            <th>Contact</th>
-            <th>Gender</th>
-            <th>Class</th>
-            <th>Address</th>
-            <th>Admission</th>
-            <th>Monthly</th>
-            <th>DOB</th>
-            <th>Enrollment</th>
-            <th>B-Form</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {displayed.map(s => (
-            <tr key={s.id}>
-              <td>{s.roll}</td>
-              <td>{s.name}</td>
-              <td>{s.contact || '-'}</td>
-              <td>{s.gender || '-'}</td>
-              <td>{s.classGrade || '-'}</td>
-              <td>{s.address || '-'}</td>
-              <td>{s.admissionFees || 0}</td>
-              <td>{s.monthlyFees || 0}</td>
-              <td>{s.dob ? new Date(s.dob).toLocaleDateString() : '-'}</td>
-              <td>{s.enrollmentDate ? new Date(s.enrollmentDate).toLocaleDateString() : '-'}</td>
-              <td>
-                {s.bformUrl ? <a href={s.bformUrl} target="_blank" rel="noreferrer">View</a>
-                  : (typeof s.bForm === 'string' ? <a href={s.bForm} target="_blank" rel="noreferrer">View</a> : '-')}
-              </td>
-              <td>
-                <button onClick={() => {
-                  if(window.confirm('Delete this student?')){ deleteStudent(s.id) }
-                }}>Delete</button>
-              </td>
+      <div className="table-wrapper">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Roll</th>
+              <th>Name</th>
+              <th>Contact</th>
+              <th>Gender</th>
+              <th>Class</th>
+              <th>Address</th>
+              <th>Admission</th>
+              <th>Monthly</th>
+              <th>DOB</th>
+              <th>Enrollment</th>
+              <th>B-Form</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {displayed.map(s => (
+              <tr key={s.id}>
+                <td>{s.roll}</td>
+                <td>{s.name}</td>
+                <td>{s.contact || '-'}</td>
+                <td>{s.gender || '-'}</td>
+                <td>{s.classGrade || '-'}</td>
+                <td>{s.address || '-'}</td>
+                <td>{s.admissionFees || 0}</td>
+                <td>{s.monthlyFees || 0}</td>
+                <td>{s.dob ? new Date(s.dob).toLocaleDateString() : '-'}</td>
+                <td>{s.enrollmentDate ? new Date(s.enrollmentDate).toLocaleDateString() : '-'}</td>
+                <td>
+                  {s.bformUrl ? <a href={s.bformUrl} target="_blank" rel="noreferrer">View</a>
+                    : (typeof s.bForm === 'string' ? <a href={s.bForm} target="_blank" rel="noreferrer">View</a> : '-')}
+                </td>
+                <td>
+                  <button onClick={() => {
+                    if(window.confirm('Delete this student?')){ deleteStudent(s.id) }
+                  }}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

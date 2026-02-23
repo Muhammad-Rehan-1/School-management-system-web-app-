@@ -8,9 +8,14 @@ import { v4 as uuidv4 } from 'uuid'
 const StoreContext = createContext()
 
 export function StoreProvider({ children }) {
+  // Session year support: load data per-session (per year)
+  const initialSessionYear = localStorage.getItem('sessionYear') || String(new Date().getFullYear())
+  const [sessionYear, setSessionYear] = useState(initialSessionYear)
+
   const [students, setStudents] = useState(() => {
     try{
-      const s = localStorage.getItem('students')
+      const key = `students_${initialSessionYear}`
+      const s = localStorage.getItem(key) || localStorage.getItem('students')
       return s ? JSON.parse(s) : []
     }catch(err){
       console.error('parse students', err)
@@ -20,7 +25,8 @@ export function StoreProvider({ children }) {
 
   const [staff, setStaff] = useState(() => {
     try{
-      const t = localStorage.getItem('staff')
+      const key = `staff_${initialSessionYear}`
+      const t = localStorage.getItem(key) || localStorage.getItem('staff')
       return t ? JSON.parse(t) : []
     }catch(err){
       console.error('parse staff', err)
@@ -28,9 +34,9 @@ export function StoreProvider({ children }) {
     }
   })
 
-  // Keep local cache in sync
-  useEffect(() => { localStorage.setItem('students', JSON.stringify(students)) }, [students])
-  useEffect(() => { localStorage.setItem('staff', JSON.stringify(staff)) }, [staff])
+  // Keep local cache in sync (persist per-session)
+  useEffect(() => { localStorage.setItem(`students_${sessionYear}`, JSON.stringify(students)) }, [students, sessionYear])
+  useEffect(() => { localStorage.setItem(`staff_${sessionYear}`, JSON.stringify(staff)) }, [staff, sessionYear])
 
   const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
   const API = import.meta.env.VITE_API_URL || 'http://localhost:4000'
@@ -137,7 +143,7 @@ export function StoreProvider({ children }) {
       const student = { id, roll, admissionFees: admission, monthlyFees: monthly, totalFees, payments, paid, unpaid, ...data }
       setStudents(prev => {
         const arr = [...prev, student]
-        try{ localStorage.setItem('students', JSON.stringify(arr)) }catch(e){ }
+        try{ localStorage.setItem(`students_${sessionYear}`, JSON.stringify(arr)) }catch(e){ }
         return arr
       })
       return student
@@ -155,7 +161,7 @@ export function StoreProvider({ children }) {
       console.warn('delete student failed, falling back to local', err)
       setStudents(prev => {
         const arr = prev.filter(s => s.id !== id)
-        try{ localStorage.setItem('students', JSON.stringify(arr)) }catch(e){ }
+        try{ localStorage.setItem(`students_${sessionYear}`, JSON.stringify(arr)) }catch(e){ }
         return arr
       })
       return true
@@ -165,8 +171,22 @@ export function StoreProvider({ children }) {
   // login/logout
   const login = async (username, password) => {
     try{
+      // Check stored password first (per-username), fallback default for rehan
+      const storedKey = `password_${username}`
+      const storedPwd = localStorage.getItem(storedKey) || (username === 'rehan' ? '123' : null)
+      if(storedPwd && password === storedPwd){
+        const u = { username, id: `user-${username}`, role: 'admin' }
+        const token = 'hardcoded-token-' + Date.now()
+        setToken(token)
+        setUser(u)
+        localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(u))
+        return u
+      }
+
+      // Fallback to API login (if server is running)
       const res = await fetch(`${API}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) })
-      if(!res.ok){ const body = await res.json().catch(()=>({})); throw new Error(body.error || 'login failed') }
+      if(!res.ok){ const body = await res.json().catch(()=>({})); throw new Error(body.error || 'Invalid username or password') }
       const { token } = await res.json()
       setToken(token)
       localStorage.setItem('token', token)
@@ -185,6 +205,38 @@ export function StoreProvider({ children }) {
     setUser(null)
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+  }
+
+  // Change password for current user (stored locally)
+  const changePassword = async (currentPwd, newPwd) => {
+    if(!user || !user.username) throw new Error('Not authenticated')
+    const key = `password_${user.username}`
+    const stored = localStorage.getItem(key) || (user.username === 'rehan' ? '123' : '')
+    if(currentPwd !== stored) throw new Error('Current password is incorrect')
+    localStorage.setItem(key, newPwd)
+    return true
+  }
+
+  // Change active session year. This persists current year data under the year key
+  // and loads data for the new year (or creates empty arrays if none exist).
+  const changeSessionYear = (newYear) => {
+    if(!newYear) return
+    const prevYear = sessionYear
+    // ensure current data persisted
+    localStorage.setItem(`students_${prevYear}`, JSON.stringify(students))
+    localStorage.setItem(`staff_${prevYear}`, JSON.stringify(staff))
+    // update session year
+    setSessionYear(newYear)
+    localStorage.setItem('sessionYear', newYear)
+    // load new year's data (or empty)
+    try{
+      const s = localStorage.getItem(`students_${newYear}`)
+      setStudents(s ? JSON.parse(s) : [])
+    }catch(e){ setStudents([]) }
+    try{
+      const t = localStorage.getItem(`staff_${newYear}`)
+      setStaff(t ? JSON.parse(t) : [])
+    }catch(e){ setStaff([]) }
   }
 
   const addStaff = async (data, onProgress) => {
@@ -209,7 +261,7 @@ export function StoreProvider({ children }) {
       const s = { id, ...data }
       setStaff(prev => {
         const arr = [...prev, s]
-        try{ localStorage.setItem('staff', JSON.stringify(arr)) }catch(e){ }
+        try{ localStorage.setItem(`staff_${sessionYear}`, JSON.stringify(arr)) }catch(e){ }
         return arr
       })
       return s
@@ -226,7 +278,7 @@ export function StoreProvider({ children }) {
       // fallback locally
       setStudents(prev => {
         const arr = prev.map(s => s.id !== id ? s : ({ ...s, ...patch }))
-        try{ localStorage.setItem('students', JSON.stringify(arr)) }catch(e){ }
+        try{ localStorage.setItem(`students_${sessionYear}`, JSON.stringify(arr)) }catch(e){ }
         return arr
       })
     }
@@ -241,7 +293,7 @@ export function StoreProvider({ children }) {
     }catch(err){
       setStaff(prev => {
         const arr = prev.map(s => s.id === id ? ({ ...s, ...patch }) : s)
-        try{ localStorage.setItem('staff', JSON.stringify(arr)) }catch(e){ }
+        try{ localStorage.setItem(`staff_${sessionYear}`, JSON.stringify(arr)) }catch(e){ }
         return arr
       })
     }
@@ -257,14 +309,32 @@ export function StoreProvider({ children }) {
       console.warn('delete staff failed, falling back to local', err)
       setStaff(prev => {
         const arr = prev.filter(s => s.id !== id)
-        try{ localStorage.setItem('staff', JSON.stringify(arr)) }catch(e){ }
+        try{ localStorage.setItem(`staff_${sessionYear}`, JSON.stringify(arr)) }catch(e){ }
         return arr
       })
       return true
     }
   }
 
-  const value = { students, staff, addStudent, addStaff, updateStudent, updateStaff, deleteStudent, deleteStaff, login, logout, user, token, setStudents, setStaff }
+  const value = {
+    students,
+    staff,
+    addStudent,
+    addStaff,
+    updateStudent,
+    updateStaff,
+    deleteStudent,
+    deleteStaff,
+    login,
+    logout,
+    user,
+    token,
+    setStudents,
+    setStaff,
+    sessionYear,
+    changeSessionYear,
+    changePassword
+  }
 
   return React.createElement(StoreContext.Provider, { value }, children)
 }

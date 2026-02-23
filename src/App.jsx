@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Students from './pages/Students'
 import Staff from './pages/Staff'
 import Finance from './pages/Finance'
+import Settings from './pages/Settings'
 import Login from './pages/Login'
 import './App.css'
 
@@ -27,6 +28,7 @@ function App(){
             <Route path="students" element={<Students />} />
             <Route path="staff" element={<Staff />} />
             <Route path="finance" element={<Finance />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
