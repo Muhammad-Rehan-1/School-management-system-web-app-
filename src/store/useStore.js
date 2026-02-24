@@ -218,7 +218,7 @@ export function StoreProvider({ children }) {
   }
 
   // Change active session year. This persists current year data under the year key
-  // and loads data for the new year (or creates empty arrays if none exist).
+  // and loads data for the new year (or creates promoted students from previous year if none exist).
   const changeSessionYear = (newYear) => {
     if(!newYear) return
     const prevYear = sessionYear
@@ -228,14 +228,46 @@ export function StoreProvider({ children }) {
     // update session year
     setSessionYear(newYear)
     localStorage.setItem('sessionYear', newYear)
-    // load new year's data (or empty)
+    // load new year's data (or promoted from previous)
+    const classPromotion = {
+      'Play Group': 'Nursery',
+      'Nursery': 'Prep',
+      'Prep': 'One',
+      'One': 'Two',
+      'Two': 'Three',
+      'Three': 'Four',
+      'Four': 'Five',
+      'Five': 'Six',
+      'Six': 'Seven',
+      'Seven': 'Eight',
+      'Eight': 'Nine',
+      'Nine': 'Nine' // Keep as Nine
+    }
     try{
-      const s = localStorage.getItem(`students_${newYear}`)
-      setStudents(s ? JSON.parse(s) : [])
+      let s = localStorage.getItem(`students_${newYear}`)
+      if(s){
+        setStudents(JSON.parse(s))
+      }else{
+        // No data for new year, promote from previous
+        const prevStudents = JSON.parse(localStorage.getItem(`students_${prevYear}`) || '[]')
+        const promotedStudents = prevStudents.map(student => ({
+          ...student,
+          classGrade: classPromotion[student.classGrade] || student.classGrade
+        }))
+        setStudents(promotedStudents)
+        localStorage.setItem(`students_${newYear}`, JSON.stringify(promotedStudents))
+      }
     }catch(e){ setStudents([]) }
     try{
       const t = localStorage.getItem(`staff_${newYear}`)
-      setStaff(t ? JSON.parse(t) : [])
+      if(t){
+        setStaff(JSON.parse(t))
+      }else{
+        // Copy staff as is
+        const prevStaff = JSON.parse(localStorage.getItem(`staff_${prevYear}`) || '[]')
+        setStaff(prevStaff)
+        localStorage.setItem(`staff_${newYear}`, JSON.stringify(prevStaff))
+      }
     }catch(e){ setStaff([]) }
   }
 
@@ -268,14 +300,31 @@ export function StoreProvider({ children }) {
     }
   }
 
-  const updateStudent = async (id, patch) => {
+  const updateStudent = async (id, patch, onProgress) => {
     try{
-      const res = await fetch(`${API}/api/students/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
-      if(!res.ok) throw new Error('update failed')
-      const s = await res.json()
-      setStudents(prev => prev.map(x => x.id === id ? s : x))
+      // If there's a file, use FormData
+      if(patch.bForm && patch.bForm instanceof File){
+        const fd = new FormData()
+        Object.keys(patch).forEach(key => {
+          if(key === 'bForm') fd.append('bForm', patch.bForm)
+          else fd.append(key, patch[key] || '')
+        })
+        const res = await fetch(`${API}/api/students/${id}`, { method: 'PUT', body: fd })
+        if(!res.ok) throw new Error('update failed')
+        const s = await res.json()
+        setStudents(prev => prev.map(x => x.id === id ? s : x))
+      }else{
+        const res = await fetch(`${API}/api/students/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
+        if(!res.ok) throw new Error('update failed')
+        const s = await res.json()
+        setStudents(prev => prev.map(x => x.id === id ? s : x))
+      }
     }catch(err){
       // fallback locally
+      if(patch.bForm && patch.bForm instanceof File){
+        const url = await uploadFile(`students/${id}/${patch.bForm.name}`, patch.bForm, onProgress)
+        patch.bForm = url
+      }
       setStudents(prev => {
         const arr = prev.map(s => s.id !== id ? s : ({ ...s, ...patch }))
         try{ localStorage.setItem(`students_${sessionYear}`, JSON.stringify(arr)) }catch(e){ }
@@ -284,13 +333,31 @@ export function StoreProvider({ children }) {
     }
   }
 
-  const updateStaff = async (id, patch) => {
+  const updateStaff = async (id, patch, onProgress) => {
     try{
-      const res = await fetch(`${API}/api/staff/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
-      if(!res.ok) throw new Error('update failed')
-      const s = await res.json()
-      setStaff(prev => prev.map(x => x.id === id ? s : x))
+      // If there's a file, use FormData
+      if(patch.cnic && patch.cnic instanceof File){
+        const fd = new FormData()
+        Object.keys(patch).forEach(key => {
+          if(key === 'cnic') fd.append('cnic', patch.cnic)
+          else fd.append(key, patch[key] || '')
+        })
+        const res = await fetch(`${API}/api/staff/${id}`, { method: 'PUT', body: fd })
+        if(!res.ok) throw new Error('update failed')
+        const s = await res.json()
+        setStaff(prev => prev.map(x => x.id === id ? s : x))
+      }else{
+        const res = await fetch(`${API}/api/staff/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
+        if(!res.ok) throw new Error('update failed')
+        const s = await res.json()
+        setStaff(prev => prev.map(x => x.id === id ? s : x))
+      }
     }catch(err){
+      // fallback locally
+      if(patch.cnic && patch.cnic instanceof File){
+        const url = await uploadFile(`staff/${id}/${patch.cnic.name}`, patch.cnic, onProgress)
+        patch.cnic = url
+      }
       setStaff(prev => {
         const arr = prev.map(s => s.id === id ? ({ ...s, ...patch }) : s)
         try{ localStorage.setItem(`staff_${sessionYear}`, JSON.stringify(arr)) }catch(e){ }

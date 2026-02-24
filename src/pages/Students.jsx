@@ -1,45 +1,111 @@
-import React, { useMemo, useState } from 'react'
-import { useStore } from '../store/useStore'
-import './Pages.css'
+import React, { useMemo, useState } from 'react';
+import { useStore } from '../store/useStore';
+import EditStudentModal from '../components/EditStudentModal';
+import './Pages.css';
 
-const CLASSES = ['Play Group','Nursery','Prep','One','Two','Three','Four','Five','Six','Seven','Eight','Nine']
+const CLASSES = [
+  'Play Group',
+  'Nursery',
+  'Prep',
+  'One',
+  'Two',
+  'Three',
+  'Four',
+  'Five',
+  'Six',
+  'Seven',
+  'Eight',
+  'Nine'
+];
 
-export default function Students(){
-  const { students, deleteStudent } = useStore()
-  const [selected, setSelected] = useState('All')
-  const [query, setQuery] = useState('')
+export default function Students() {
+  const { students, deleteStudent } = useStore();
+  const [selectedClass, setSelectedClass] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [editingStudent, setEditingStudent] = useState(null);
 
-  const filtered = useMemo(() => {
-    if (selected === 'All') return students
-    return students.filter(s => s.classGrade === selected)
-  }, [students, selected])
+  /**
+   * Filter students by selected class
+   */
+  const filteredByClass = useMemo(() => {
+    if (selectedClass === 'All') return students;
+    return students.filter(s => s.classGrade === selectedClass);
+  }, [students, selectedClass]);
 
-  const displayed = useMemo(() => {
-    const base = filtered
-    const q = (query || '').trim().toLowerCase()
-    if(!q) return base
-    const matches = s => (s.name||'').toLowerCase().includes(q) || (s.roll||'').toLowerCase().includes(q) || (s.contact||'').toLowerCase().includes(q)
-    return base.filter(matches)
-  }, [filtered, query])
+  /**
+   * Further filter by search query
+   */
+  const displayedStudents = useMemo(() => {
+    const query = (searchQuery || '').trim().toLowerCase();
+    if (!query) return filteredByClass;
+
+    return filteredByClass.filter(student => {
+      const matchesName = (student.name || '').toLowerCase().includes(query);
+      const matchesRoll = (student.roll || '').toLowerCase().includes(query);
+      const matchesContact = (student.contact || '').toLowerCase().includes(query);
+      return matchesName || matchesRoll || matchesContact;
+    });
+  }, [filteredByClass, searchQuery]);
+
+  const handleDeleteStudent = (studentId) => {
+    if (window.confirm('Are you sure you want to delete this student?')) {
+      deleteStudent(studentId);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return dateString ? new Date(dateString).toLocaleDateString() : '-';
+  };
 
   return (
     <div className="page-container">
       <h2>Students</h2>
+
+      {/* Class Filter */}
       <div className="classes-row">
-        {CLASSES.map(c => (
-          <button key={c} className={c===selected? 'active':''} onClick={() => setSelected(c)}>{c}</button>
+        {CLASSES.map(className => (
+          <button
+            key={className}
+            className={className === selectedClass ? 'active' : ''}
+            onClick={() => setSelectedClass(className)}
+          >
+            {className}
+          </button>
         ))}
-        <button onClick={() => setSelected('All')}>All</button>
+        <button
+          className={selectedClass === 'All' ? 'active' : ''}
+          onClick={() => setSelectedClass('All')}
+        >
+          All
+        </button>
       </div>
 
+      {/* Search Box */}
       <div className="search-row center">
         <div className="search-box">
-          <span className="search-icon" aria-hidden>🔍</span>
-          <input className="search-input" placeholder="Search by name, roll or contact..." value={query} onChange={(e)=>setQuery(e.target.value)} />
-          {query && <button type="button" className="search-clear" onClick={() => setQuery('')} aria-label="Clear search">✕</button>}
+          <span className="search-icon" aria-hidden>
+            🔍
+          </span>
+          <input
+            className="search-input"
+            placeholder="Search by name, roll or contact..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Students Table */}
       <h3>Students List</h3>
       <div className="table-wrapper">
         <table className="table">
@@ -60,32 +126,47 @@ export default function Students(){
             </tr>
           </thead>
           <tbody>
-            {displayed.map(s => (
-              <tr key={s.id}>
-                <td>{s.roll}</td>
-                <td>{s.name}</td>
-                <td>{s.contact || '-'}</td>
-                <td>{s.gender || '-'}</td>
-                <td>{s.classGrade || '-'}</td>
-                <td>{s.address || '-'}</td>
-                <td>{s.admissionFees || 0}</td>
-                <td>{s.monthlyFees || 0}</td>
-                <td>{s.dob ? new Date(s.dob).toLocaleDateString() : '-'}</td>
-                <td>{s.enrollmentDate ? new Date(s.enrollmentDate).toLocaleDateString() : '-'}</td>
+            {displayedStudents.map(student => (
+              <tr key={student.id}>
+                <td>{student.roll}</td>
+                <td>{student.name}</td>
+                <td>{student.contact || '-'}</td>
+                <td>{student.gender || '-'}</td>
+                <td>{student.classGrade || '-'}</td>
+                <td>{student.address || '-'}</td>
+                <td>{student.admissionFees || 0}</td>
+                <td>{student.monthlyFees || 0}</td>
+                <td>{formatDate(student.dob)}</td>
+                <td>{formatDate(student.enrollmentDate)}</td>
                 <td>
-                  {s.bformUrl ? <a href={s.bformUrl} target="_blank" rel="noreferrer">View</a>
-                    : (typeof s.bForm === 'string' ? <a href={s.bForm} target="_blank" rel="noreferrer">View</a> : '-')}
+                  {student.bformUrl ? (
+                    <a href={student.bformUrl} target="_blank" rel="noreferrer">
+                      View
+                    </a>
+                  ) : typeof student.bForm === 'string' ? (
+                    <a href={student.bForm} target="_blank" rel="noreferrer">
+                      View
+                    </a>
+                  ) : (
+                    '-'
+                  )}
                 </td>
                 <td>
-                  <button onClick={() => {
-                    if(window.confirm('Delete this student?')){ deleteStudent(s.id) }
-                  }}>Delete</button>
+                  <button onClick={() => setEditingStudent(student)}>Edit</button>
+                  <button onClick={() => handleDeleteStudent(student.id)}>Delete</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {editingStudent && (
+        <EditStudentModal
+          student={editingStudent}
+          onClose={() => setEditingStudent(null)}
+        />
+      )}
     </div>
-  )
+  );
 }

@@ -1,41 +1,89 @@
-import express from 'express'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-export default function(prisma){
-  const router = express.Router()
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+const TOKEN_EXPIRY = '7d';
 
-  // POST /auth/login -> { username, password }
+export default function createAuthRouter(prisma) {
+  const router = express.Router();
+
+  /**
+   * POST /auth/login - Login user with username and password
+   * Request body: { username: string, password: string }
+   * Response: { token: string }
+   */
   router.post('/login', async (req, res) => {
-    try{
-      const { username, password } = req.body
-      if(!username || !password) return res.status(400).json({ error: 'username and password required' })
+    try {
+      const { username, password } = req.body;
 
-      const user = await prisma.user.findUnique({ where: { username } })
-      if(!user) return res.status(401).json({ error: 'invalid credentials' })
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' });
+      }
 
-      const ok = bcrypt.compareSync(password, user.password)
-      if(!ok) return res.status(401).json({ error: 'invalid credentials' })
+      // Find user by username
+      const user = await prisma.user.findUnique({ where: { username } });
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
 
-      const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET || 'dev-secret', { expiresIn: '7d' })
-      res.json({ token })
-    }catch(err){ console.error(err); res.status(500).json({ error: err.message }) }
-  })
+      // Verify password
+      const isPasswordValid = bcrypt.compareSync(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
 
-  // GET /auth/me -> return current user info (requires Bearer token)
+      // Generate JWT token
+      const token = jwt.sign(
+        { userId: user.id, username: user.username },
+        JWT_SECRET,
+        { expiresIn: TOKEN_EXPIRY }
+      );
+
+      res.json({ token });
+    } catch (err) {
+      console.error('Login error:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  /**
+   * GET /auth/me - Get current user info (requires Bearer token)
+   * Headers: Authorization: Bearer <token>
+   * Response: user object (without password)
+   */
   router.get('/me', async (req, res) => {
-    try{
-      const auth = req.headers.authorization
-      if(!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'missing token' })
-      const token = auth.slice('Bearer '.length)
-      let payload
-      try{ payload = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret') }catch(e){ return res.status(401).json({ error: 'invalid token' }) }
-      const user = await prisma.user.findUnique({ where: { id: payload.userId } })
-      if(!user) return res.status(404).json({ error: 'user not found' })
-      const { password, ...u } = user
-      res.json(u)
-    }catch(err){ console.error(err); res.status(500).json({ error: err.message }) }
-  })
+    try {
+      const authHeader = req.headers.authorization;
 
-  return router
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Missing or invalid token' });
+      }
+
+      const token = authHeader.slice('Bearer '.length);
+
+      // Verify JWT token
+      let payload;
+      try {
+        payload = jwt.verify(token, JWT_SECRET);
+      } catch (err) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+
+      // Fetch user from database
+      const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Return user without password
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (err) {
+      console.error('Get user error:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  return router;
 }
