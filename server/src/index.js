@@ -30,8 +30,34 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 const prisma = new PrismaClient();
 const app = express();
 
+// CORS configuration
+// Allow frontend URL from environment, or fallback to localhost for development
+const allowedOrigins = [
+  'http://localhost:3000',      // Vite dev default
+  'http://localhost:5173',       // Vite dev alternative
+  'http://localhost:5174',       // Another Vite port
+  process.env.FRONTEND_URL,      // Set on Render for Vercel production
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  optionsSuccessStatus: 200,
+  credentials: true
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static(path.resolve(UPLOAD_DIR)));
 
